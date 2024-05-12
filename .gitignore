@@ -170,3 +170,6 @@ dist
 
 .dev.vars
 .wrangler/
+
+# general mac
+.DS_Store
