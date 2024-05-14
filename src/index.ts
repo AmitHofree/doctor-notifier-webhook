@@ -1,4 +1,4 @@
-import { Bot, webhookCallback } from 'grammy';
+import { Bot, CommandContext, Context, webhookCallback } from 'grammy';
 
 const startCommandReply = `
 Welcome to the Doctor Appointment Notification Bot! 🚑
@@ -29,8 +29,8 @@ export default {
 
 			bot.command('start', (ctx) => ctx.reply(startCommandReply));
 			bot.command('help', (ctx) => ctx.reply(helpCommandReply));
-			bot.command('register', async (ctx) => ctx.reply(await registerUser(ctx.chat.id.toString(), env)));
-			bot.command('unregister', async (ctx) => ctx.reply(await unregisterUser(ctx.chat.id.toString(), env)));
+			bot.command('register', (ctx) => handleRegister(ctx, env));
+			bot.command('unregister', (ctx) => handleUnregister(ctx, env));
 
 			const cb = webhookCallback(bot, 'cloudflare-mod');
 			return await cb(request);
@@ -41,18 +41,20 @@ export default {
 	},
 };
 
-async function registerUser(chatId: string, env: Env) {
+async function handleRegister(ctx: CommandContext<Context>, env: Env) {
+	const chatId = ctx.chat.id;
 	const activeChatIds = await getActiveChatIds(env);
-	if (!activeChatIds.includes(chatId)) {
+	if (!activeChatIds.includes()) {
 		activeChatIds.push(chatId);
 		await saveActiveChatIds(activeChatIds, env);
-		return 'You are now registered for updates.';
+		await ctx.reply('You are now registered for updates.');
 	} else {
-		return 'You are already registered for updates!';
+		await ctx.reply('You are already registered for updates!');
 	}
 }
 
-async function unregisterUser(chatId: string, env: Env) {
+async function handleUnregister(ctx: CommandContext<Context>, env: Env) {
+	const chatId = ctx.chat.id;
 	const activeChatIds = await getActiveChatIds(env);
 	const index = activeChatIds.indexOf(chatId);
 	if (index > -1) {
