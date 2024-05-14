@@ -49,7 +49,7 @@ export default {
 async function handleRegister(ctx: CommandContext<Context>, env: Env): Promise<string> {
 	const chatId = ctx.chat.id;
 	const item = ctx.match;
-	if (item === undefined) {
+	if (item === '') {
 		return 'Please pass a SERGUIDE_LINK to the command to register for that doctor.';
 	}
 	const itemKeyIndex = extractItemKeyIndex(item);
@@ -68,7 +68,7 @@ async function handleRegister(ctx: CommandContext<Context>, env: Env): Promise<s
 async function handleUnregister(ctx: CommandContext<Context>, env: Env): Promise<string> {
 	const chatId = ctx.chat.id;
 	const item = ctx.match;
-	if (item === undefined) {
+	if (item === '') {
 		return 'Please pass a SERGUIDE_LINK to the command to unregister for that doctor.';
 	}
 	const itemKeyIndex = extractItemKeyIndex(item);
