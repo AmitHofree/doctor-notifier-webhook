@@ -34,8 +34,8 @@ export default {
 
 			bot.command('start', (ctx) => ctx.reply(startCommandReply));
 			bot.command('help', (ctx) => ctx.reply(helpCommandReply));
-			bot.command('register', (ctx) => ctx.reply(await handleRegister(ctx, env)));
-			bot.command('unregister', (ctx) => ctx.reply(await handleUnregister(ctx, env)))
+			bot.command('register', async (ctx) => ctx.reply(await handleRegister(ctx, env)));
+			bot.command('unregister', async (ctx) => ctx.reply(await handleUnregister(ctx, env)))
 
 			const cb = webhookCallback(bot, 'cloudflare-mod');
 			return await cb(request);
