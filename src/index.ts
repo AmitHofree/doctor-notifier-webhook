@@ -50,11 +50,11 @@ async function handleRegister(ctx: CommandContext<Context>, env: Env): Promise<s
 	const chatId = ctx.chat.id;
 	const item = ctx.match;
 	if (item === undefined) {
-		return 'Please pass a SERGUIDE_LINK to the command to register for that doctor.')
+		return 'Please pass a SERGUIDE_LINK to the command to register for that doctor.';
 	}
 	const itemKeyIndex = extractItemKeyIndex(item);
 	if (itemKeyIndex === '') {
-		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il'
+		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il';
 	}
 	const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
 	if (!activeChatIds.includes(chatId)) {
@@ -69,11 +69,11 @@ async function handleUnregister(ctx: CommandContext<Context>, env: Env): Promise
 	const chatId = ctx.chat.id;
 	const item = ctx.match;
 	if (item === undefined) {
-		return 'Please pass a SERGUIDE_LINK to the command to unregister for that doctor.')
+		return 'Please pass a SERGUIDE_LINK to the command to unregister for that doctor.';
 	}
 	const itemKeyIndex = extractItemKeyIndex(item);
 	if (itemKeyIndex === '') {
-		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il'
+		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il';
 	}
 	const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
 	if (activeChatIds.includes(chatId)) {
@@ -115,7 +115,7 @@ async function addChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string, en
 	}
 }
 
-async function removeChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string env: Env) {
+async function removeChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string, env: Env) {
 	try {
 		const stmt = env.DB.prepare('DELETE FROM notifications_registered WHERE chat_id = ? AND item_key_index = ?').bind(chatId, itemKeyIndex);
 		const { success } = await stmt.run();
