@@ -1,4 +1,4 @@
-import { Bot, webhookCallback } from "grammy";
+import { Bot, webhookCallback } from 'grammy';
 
 const startCommandReply = `
 Welcome to the Doctor Appointment Notification Bot! 🚑
@@ -26,16 +26,49 @@ export default {
 		try {
 			const botInfo = JSON.parse(env.BOT_INFO);
 			const bot = new Bot(env.TELEGRAM_BOT_TOKEN, { botInfo });
-	  
-			bot.command("start", (ctx) => ctx.reply(startCommandReply));
-			bot.command("help", (ctx) => ctx.reply(helpCommandReply));
-			
-			const cb = webhookCallback(bot, "cloudflare-mod");
+
+			bot.command('start', (ctx) => ctx.reply(startCommandReply));
+			bot.command('help', (ctx) => ctx.reply(helpCommandReply));
+			bot.command('register', async (ctx) => ctx.reply(await registerUser(ctx.chat.id.toString(), env)));
+			bot.command('unregister', async (ctx) => ctx.reply(await unregisterUser(ctx.chat.id.toString(), env)));
+
+			const cb = webhookCallback(bot, 'cloudflare-mod');
 			return await cb(request);
-		 } catch (e) {
-			if (e instanceof Error)
-				return new Response(e.message);
-			return new Response(`(${typeof e} - ${e}`)
+		} catch (e) {
+			if (e instanceof Error) return new Response(e.message);
+			return new Response(`(${typeof e} - ${e}`);
 		}
 	},
 };
+
+async function registerUser(chatId: string, env: Env) {
+	const activeChatIds = await getActiveChatIds(env);
+	if (!activeChatIds.includes(chatId)) {
+		activeChatIds.push(chatId);
+		await saveActiveChatIds(activeChatIds, env);
+		return 'You are now registered for updates.';
+	} else {
+		return 'You are already registered for updates!';
+	}
+}
+
+async function unregisterUser(chatId: string, env: Env) {
+	const activeChatIds = await getActiveChatIds(env);
+	const index = activeChatIds.indexOf(chatId);
+	if (index > -1) {
+		activeChatIds.splice(index, 1);
+		await saveActiveChatIds(activeChatIds, env);
+		return 'You are now unregistered from updates.';
+	} else {
+		return 'You are not registered for updates.';
+	}
+}
+
+async function getActiveChatIds(env: Env) {
+	const data = await env.STORAGE.get('active_chat_ids');
+	return data ? JSON.parse(data) : [];
+}
+
+async function saveActiveChatIds(chatIds: string[], env: Env) {
+	await env.STORAGE.put('active_chat_ids', JSON.stringify(chatIds));
+}
