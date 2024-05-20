@@ -102,7 +102,7 @@ async function getChatIdsForItemKeyIndex(itemKeyIndex: string, env: Env): Promis
 
 async function addChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string, env: Env) {
 	try {
-		const stmt = env.DB.prepare('INSERT INTO notifications_registered (chat_id, item_key_index) VALUES = (?, ?)').bind(chatId, itemKeyIndex);
+		const stmt = env.DB.prepare('INSERT INTO notifications_registered (chat_id, item_key_index) VALUES (?, ?)').bind(chatId, itemKeyIndex);
 		const { success } = await stmt.run();
 		if (!success) {
 			console.log("Unknown error executing SQL query in addChatIdForItemKeyIndex");
