@@ -1,9 +1,9 @@
 import { Bot, CommandContext, Context, webhookCallback } from 'grammy';
 
 type NotificationsRegisteredRow = {
-    chat_id: number;
-    item_key_index: string;
-}
+	chat_id: number;
+	item_key_index: string;
+};
 
 const startCommandReply = `
 Welcome to the Doctor Appointment Notification Bot! 🚑
@@ -35,7 +35,7 @@ export default {
 			bot.command('start', (ctx) => ctx.reply(startCommandReply));
 			bot.command('help', (ctx) => ctx.reply(helpCommandReply));
 			bot.command('register', async (ctx) => ctx.reply(await handleRegister(ctx, env)));
-			bot.command('unregister', async (ctx) => ctx.reply(await handleUnregister(ctx, env)))
+			bot.command('unregister', async (ctx) => ctx.reply(await handleUnregister(ctx, env)));
 
 			const cb = webhookCallback(bot, 'cloudflare-mod');
 			return await cb(request);
@@ -56,12 +56,16 @@ async function handleRegister(ctx: CommandContext<Context>, env: Env): Promise<s
 	if (itemKeyIndex === '') {
 		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il';
 	}
-	const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
-	if (!activeChatIds.includes(chatId)) {
-		await addChatIdForItemKeyIndex(chatId, itemKeyIndex, env);
-		return 'You are now registered for updates for the specified doctor';
-	} else {
-		return 'You are already registered for updates for the specified doctor!';
+	try {
+		const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
+		if (!activeChatIds.includes(chatId)) {
+			await addChatIdForItemKeyIndex(chatId, itemKeyIndex, env);
+			return 'You are now registered for updates for the specified doctor';
+		} else {
+			return 'You are already registered for updates for the specified doctor!';
+		}
+	} catch (e) {
+		return 'Server returned error response, unable to process request';
 	}
 }
 
@@ -75,12 +79,16 @@ async function handleUnregister(ctx: CommandContext<Context>, env: Env): Promise
 	if (itemKeyIndex === '') {
 		return 'Unable to extract info from the supplied link. Make sure to pass a link from serguide.maccabi4u.co.il';
 	}
-	const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
-	if (activeChatIds.includes(chatId)) {
-		await removeChatIdForItemKeyIndex(chatId, itemKeyIndex, env);
-		return 'You are now unregistered from updates for the specified doctor.';
-	} else {
-		return 'You are not registered for updates for the specified doctor.';
+	try {
+		const activeChatIds = await getChatIdsForItemKeyIndex(itemKeyIndex, env);
+		if (activeChatIds.includes(chatId)) {
+			await removeChatIdForItemKeyIndex(chatId, itemKeyIndex, env);
+			return 'You are now unregistered from updates for the specified doctor.';
+		} else {
+			return 'You are not registered for updates for the specified doctor.';
+		}
+	} catch (e) {
+		return 'Server returned error response, unable to process request';
 	}
 }
 
@@ -89,14 +97,13 @@ async function getChatIdsForItemKeyIndex(itemKeyIndex: string, env: Env): Promis
 		const stmt = env.DB.prepare('SELECT chat_id FROM notifications_registered WHERE item_key_index = ?').bind(itemKeyIndex);
 		const { results, success } = await stmt.all<NotificationsRegisteredRow>();
 		if (!success) {
-			console.log("Unknown error executing SQL query in getChatIdsForItemKeyIndex");
+			console.log('Unknown error executing SQL query in getChatIdsForItemKeyIndex');
 			return [];
 		}
-		return results.map(result => result.chat_id)
+		return results.map((result) => result.chat_id);
 	} catch (e) {
-		if (e instanceof Error)
-			console.error(`Error executing SQL query in getChatIdsForItemKeyIndex - ${e.message}`);
-		return [];
+		if (e instanceof Error) console.error(`Error executing SQL query in getChatIdsForItemKeyIndex - ${e.message}`);
+		throw e;
 	}
 }
 
@@ -105,13 +112,12 @@ async function addChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string, en
 		const stmt = env.DB.prepare('INSERT INTO notifications_registered (chat_id, item_key_index) VALUES (?, ?)').bind(chatId, itemKeyIndex);
 		const { success } = await stmt.run();
 		if (!success) {
-			console.log("Unknown error executing SQL query in addChatIdForItemKeyIndex");
+			console.log('Unknown error executing SQL query in addChatIdForItemKeyIndex');
 		}
 		return;
 	} catch (e) {
-		if (e instanceof Error)
-			console.error(`Error executing SQL query in addChatIdForItemKeyIndex - ${e.message}`);
-		return;
+		if (e instanceof Error) console.error(`Error executing SQL query in addChatIdForItemKeyIndex - ${e.message}`);
+		throw e;
 	}
 }
 
@@ -120,22 +126,21 @@ async function removeChatIdForItemKeyIndex(chatId: number, itemKeyIndex: string,
 		const stmt = env.DB.prepare('DELETE FROM notifications_registered WHERE chat_id = ? AND item_key_index = ?').bind(chatId, itemKeyIndex);
 		const { success } = await stmt.run();
 		if (!success) {
-			console.log("Unknown error executing SQL query in removeChatIdForItemKeyIndex");
+			console.log('Unknown error executing SQL query in removeChatIdForItemKeyIndex');
 		}
 		return;
 	} catch (e) {
-		if (e instanceof Error)
-			console.error(`Error executing SQL query in removeChatIdForItemKeyIndex - ${e.message}`);
-		return;
+		if (e instanceof Error) console.error(`Error executing SQL query in removeChatIdForItemKeyIndex - ${e.message}`);
+		throw e;
 	}
 }
 
-function extractItemKeyIndex(link: string): string{
+function extractItemKeyIndex(link: string): string {
 	try {
 		const url = new URL(link);
 		const itemKeyIndex = url.searchParams.get('ItemKeyIndex');
 		return itemKeyIndex ?? '';
-	} catch(TypeError) {
+	} catch (TypeError) {
 		return '';
 	}
 }
